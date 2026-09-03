@@ -10,6 +10,7 @@ import {
   CODEX_CONFIG,
   getCodexQuotaStoreKey,
   KIMI_CONFIG,
+  CURSOR_SAND_CONFIG,
   getSortedCodexResetCreditExpiries,
   resolveQuotaDisplayState,
   XAI_CONFIG,
@@ -47,7 +48,7 @@ describe('getCodexQuotaStoreKey', () => {
       provider: 'claude',
       authIndex: 'auth-1',
     };
-    const configs = [CLAUDE_CONFIG, ANTIGRAVITY_CONFIG, CODEX_CONFIG, KIMI_CONFIG, XAI_CONFIG];
+    const configs = [CLAUDE_CONFIG, ANTIGRAVITY_CONFIG, CODEX_CONFIG, KIMI_CONFIG, CURSOR_SAND_CONFIG, XAI_CONFIG];
 
     configs.forEach((config) => {
       expect(config.getStoreKey?.(file)).toBe('shared.json::auth-1');

@@ -267,6 +267,7 @@ describe('useQuotaStore persistence', () => {
       claudeQuota: {},
       codexQuota: {},
       kimiQuota: {},
+      cursorSandQuota: {},
       xaiQuota: {},
     });
   });

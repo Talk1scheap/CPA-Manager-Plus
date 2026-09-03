@@ -356,7 +356,7 @@ export const buildAccountQuotaSnapshotQueryAccounts = (
   );
   return rows.flatMap((row) => {
     const target = targets.get(row.selectionKey);
-    if (!target || !['codex', 'claude', 'antigravity', 'kimi', 'xai'].includes(row.provider)) {
+    if (!target || !['codex', 'claude', 'antigravity', 'kimi', 'cursor-sand', 'xai'].includes(row.provider)) {
       return [];
     }
     return [
@@ -729,6 +729,7 @@ const snapshotDefinition = (
     options.provider === 'claude' ||
     options.provider === 'antigravity' ||
     options.provider === 'kimi' ||
+    options.provider === 'cursor-sand' ||
     options.provider === 'xai'
       ? options.provider
       : 'summary';

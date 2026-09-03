@@ -478,6 +478,33 @@ export interface KimiQuotaState extends CredentialScopedQuotaState {
   errorStatus?: number;
 }
 
+export interface CursorSandQuotaRow {
+  id: string;
+  label?: string;
+  labelKey?: string;
+  labelParams?: Record<string, string | number>;
+  used: number;
+  limit: number;
+  resetHint?: string;
+  resetAtMs?: number | null;
+  resetAccuracy?: QuotaResetAccuracy;
+  /** Period start from get-sand-usage-status.currentPeriodStart */
+  periodStartMs?: number | null;
+  /** Window length in seconds (reset - period start). Enables list/detail interval UI. */
+  limitWindowSeconds?: number | null;
+  planLabel?: string;
+  hasAvailableUsage?: boolean;
+}
+
+export interface CursorSandQuotaState extends CredentialScopedQuotaState {
+  status: 'idle' | 'loading' | 'success' | 'error';
+  rows: CursorSandQuotaRow[];
+  quotaInventoryObserved?: boolean;
+  planLabel?: string;
+  error?: string;
+  errorStatus?: number;
+}
+
 // xAI/Grok API payload types
 export interface XaiBillingCent extends Record<string, unknown> {
   val?: number | string;

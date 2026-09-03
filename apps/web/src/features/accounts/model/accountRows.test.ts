@@ -37,6 +37,7 @@ const emptyStores = (): AccountQuotaStores => ({
   claudeQuota: {},
   codexQuota: {},
   kimiQuota: {},
+  cursorSandQuota: {},
   xaiQuota: {},
 });
 
@@ -69,6 +70,7 @@ const scopeTestQuotaStores = (files: AuthFileItem[], stores: AccountQuotaStores)
     stores.claudeQuota,
     stores.codexQuota,
     stores.kimiQuota,
+    stores.cursorSandQuota,
     stores.xaiQuota,
   ] as Array<Record<string, CredentialScopedQuotaState>>;
 

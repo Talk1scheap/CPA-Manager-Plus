@@ -140,6 +140,7 @@ const captureQuotaSnapshot = (state: QuotaStoreState) => ({
   claudeQuota: state.claudeQuota,
   codexQuota: state.codexQuota,
   kimiQuota: state.kimiQuota,
+  cursorSandQuota: state.cursorSandQuota,
   xaiQuota: state.xaiQuota,
 });
 

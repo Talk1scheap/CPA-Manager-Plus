@@ -47,6 +47,7 @@ import {
   CLAUDE_CONFIG,
   CODEX_CONFIG,
   KIMI_CONFIG,
+  CURSOR_SAND_CONFIG,
   XAI_CONFIG,
   buildObservedCodexQuotaState,
   refreshQuotaWithConfig,
@@ -1025,6 +1026,7 @@ export function AccountsPage() {
   const claudeQuota = useQuotaStore((state) => state.claudeQuota);
   const codexQuota = useQuotaStore((state) => state.codexQuota);
   const kimiQuota = useQuotaStore((state) => state.kimiQuota);
+  const cursorSandQuota = useQuotaStore((state) => state.cursorSandQuota);
   const xaiQuota = useQuotaStore((state) => state.xaiQuota);
   const baseQuotaStores = useMemo(
     () => ({
@@ -1032,14 +1034,16 @@ export function AccountsPage() {
       claudeQuota,
       codexQuota,
       kimiQuota,
+      cursorSandQuota,
       xaiQuota,
     }),
-    [antigravityQuota, claudeQuota, codexQuota, kimiQuota, xaiQuota]
+    [antigravityQuota, claudeQuota, codexQuota, kimiQuota, cursorSandQuota, xaiQuota]
   );
   const setAntigravityQuota = useQuotaStore((state) => state.setAntigravityQuota);
   const setClaudeQuota = useQuotaStore((state) => state.setClaudeQuota);
   const setCodexQuota = useQuotaStore((state) => state.setCodexQuota);
   const setKimiQuota = useQuotaStore((state) => state.setKimiQuota);
+  const setCursorSandQuota = useQuotaStore((state) => state.setCursorSandQuota);
   const setXaiQuota = useQuotaStore((state) => state.setXaiQuota);
 
   const [activeView, setActiveView] = useState<AccountsView>(
@@ -2620,6 +2624,9 @@ export function AccountsPage() {
         case KIMI_CONFIG.type:
           prune(KIMI_CONFIG, setKimiQuota);
           break;
+        case CURSOR_SAND_CONFIG.type:
+          prune(CURSOR_SAND_CONFIG, setCursorSandQuota);
+          break;
         case XAI_CONFIG.type:
           prune(XAI_CONFIG, setXaiQuota);
           break;
@@ -2636,6 +2643,7 @@ export function AccountsPage() {
       setCredentialEvidenceBoundaries,
       setCodexQuota,
       setKimiQuota,
+      setCursorSandQuota,
       setXaiQuota,
     ]
   );
@@ -3416,6 +3424,17 @@ export function AccountsPage() {
         }
         case KIMI_CONFIG.type: {
           const state = getCredentialScopedQuotaState(baseQuotaStores.kimiQuota, row.raw);
+          if (
+            state?.status === 'success' &&
+            (state.quotaInventoryObserved === true || state.rows.length > 0)
+          ) {
+            fetchedAtMs = state.fetchedAtMs;
+            if (state.quotaInventoryObserved !== true) inventoryMode = 'partial';
+          }
+          break;
+        }
+        case CURSOR_SAND_CONFIG.type: {
+          const state = getCredentialScopedQuotaState(baseQuotaStores.cursorSandQuota, row.raw);
           if (
             state?.status === 'success' &&
             (state.quotaInventoryObserved === true || state.rows.length > 0)
@@ -5548,6 +5567,16 @@ export function AccountsPage() {
               )
             )?.status === 'success'
           );
+        case CURSOR_SAND_CONFIG.type:
+          return (
+            (
+              await refreshWithConfig(
+                CURSOR_SAND_CONFIG,
+                setCursorSandQuota,
+                getScopedQuotaState(CURSOR_SAND_CONFIG, baseQuotaStores.cursorSandQuota, row.raw)
+              )
+            )?.status === 'success'
+          );
         case XAI_CONFIG.type:
           return (
             (
@@ -5568,6 +5597,7 @@ export function AccountsPage() {
       setClaudeQuota,
       setCodexQuota,
       setKimiQuota,
+      setCursorSandQuota,
       setXaiQuota,
       t,
       authFilesRequestScope,

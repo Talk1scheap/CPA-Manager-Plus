@@ -10,6 +10,7 @@ import type {
   CodexQuotaState,
   CredentialScopedQuotaState,
   KimiQuotaState,
+  CursorSandQuotaState,
   XaiQuotaState,
 } from '@/types';
 import { obfuscatedStorage } from '@/services/storage/secureStorage';
@@ -24,11 +25,13 @@ interface QuotaStoreState {
   claudeQuota: Record<string, ClaudeQuotaState>;
   codexQuota: Record<string, CodexQuotaState>;
   kimiQuota: Record<string, KimiQuotaState>;
+  cursorSandQuota: Record<string, CursorSandQuotaState>;
   xaiQuota: Record<string, XaiQuotaState>;
   setAntigravityQuota: (updater: QuotaUpdater<Record<string, AntigravityQuotaState>>) => void;
   setClaudeQuota: (updater: QuotaUpdater<Record<string, ClaudeQuotaState>>) => void;
   setCodexQuota: (updater: QuotaUpdater<Record<string, CodexQuotaState>>) => void;
   setKimiQuota: (updater: QuotaUpdater<Record<string, KimiQuotaState>>) => void;
+  setCursorSandQuota: (updater: QuotaUpdater<Record<string, CursorSandQuotaState>>) => void;
   setXaiQuota: (updater: QuotaUpdater<Record<string, XaiQuotaState>>) => void;
   activateQuotaCacheScope: (scope: string) => void;
   clearQuotaCache: () => void;
@@ -46,6 +49,7 @@ const emptyQuotaState = {
   claudeQuota: {},
   codexQuota: {},
   kimiQuota: {},
+  cursorSandQuota: {},
   xaiQuota: {},
 };
 
@@ -119,6 +123,10 @@ export const useQuotaStore = create<QuotaStoreState>()(
         set((state) => ({
           kimiQuota: resolveUpdater(updater, state.kimiQuota),
         })),
+      setCursorSandQuota: (updater) =>
+        set((state) => ({
+          cursorSandQuota: resolveUpdater(updater, state.cursorSandQuota),
+        })),
       setXaiQuota: (updater) =>
         set((state) => ({
           xaiQuota: resolveUpdater(updater, state.xaiQuota),
@@ -154,6 +162,7 @@ export const useQuotaStore = create<QuotaStoreState>()(
         claudeQuota: filterPersistableQuotaStates(state.claudeQuota),
         codexQuota: filterPersistableCodexQuota(state.codexQuota),
         kimiQuota: filterPersistableQuotaStates(state.kimiQuota),
+        cursorSandQuota: filterPersistableQuotaStates(state.cursorSandQuota),
         xaiQuota: filterPersistableQuotaStates(state.xaiQuota),
       }),
       merge: (persistedState, currentState) => {
@@ -165,6 +174,7 @@ export const useQuotaStore = create<QuotaStoreState>()(
           claudeQuota: filterPersistableQuotaStates(persisted?.claudeQuota),
           codexQuota: filterPersistableCodexQuota(persisted?.codexQuota),
           kimiQuota: filterPersistableQuotaStates(persisted?.kimiQuota),
+          cursorSandQuota: filterPersistableQuotaStates(persisted?.cursorSandQuota),
           xaiQuota: filterPersistableQuotaStates(persisted?.xaiQuota),
         };
       },

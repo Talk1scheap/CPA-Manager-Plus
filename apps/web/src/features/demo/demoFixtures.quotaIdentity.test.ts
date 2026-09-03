@@ -13,6 +13,7 @@ describe('demo quota credential identity', () => {
       stores.claudeQuota,
       stores.codexQuota,
       stores.kimiQuota,
+      stores.cursorSandQuota,
       stores.xaiQuota,
     ];
 

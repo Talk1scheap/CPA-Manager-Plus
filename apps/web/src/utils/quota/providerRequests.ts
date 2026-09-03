@@ -14,6 +14,7 @@ import type {
   CodexUsagePayload,
   KimiQuotaRow,
   KimiUsagePayload,
+  CursorSandQuotaRow,
   XaiBillingConfig,
   XaiBillingPayload,
   XaiBillingDiagnostic,
@@ -24,7 +25,7 @@ import type {
   XaiProductUsageSummary,
 } from '@/types';
 import { apiCallApi, getApiCallErrorMessage } from '@/services/api/apiCall';
-import { createScopedApiRequestConfig, type ApiClientRequestScope } from '@/services/api/client';
+import { apiClient, createScopedApiRequestConfig, type ApiClientRequestScope } from '@/services/api/client';
 import { isRecord } from '@/utils/helpers';
 import { sha256Hex } from '@/utils/apiKeyHash';
 import {
@@ -1088,6 +1089,139 @@ export const fetchKimiQuota = async (
   return {
     rows,
     quotaInventoryObserved: hasKimiQuotaInventory(payload, rows),
+  };
+};
+
+export type CursorSandQuotaData = {
+  rows: CursorSandQuotaRow[];
+  quotaInventoryObserved: boolean;
+  planLabel?: string;
+};
+
+type CursorSandUsagePayload = {
+  currentPeriodStart?: unknown;
+  nextResetTimestampUtc?: unknown;
+  usagePercent?: unknown;
+  hasAvailableUsage?: unknown;
+  hasNonZeroIncludedLimit?: unknown;
+  onDemandSettings?: unknown;
+  includedUsageSuperGrokPlan?: unknown;
+  grokPlanLabel?: unknown;
+};
+
+const parseCursorSandUsagePayload = (raw: unknown): CursorSandUsagePayload | null => {
+  if (!raw) return null;
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      return isRecord(parsed) ? (parsed as CursorSandUsagePayload) : null;
+    } catch {
+      return null;
+    }
+  }
+  return isRecord(raw) ? (raw as CursorSandUsagePayload) : null;
+};
+
+const resolveCursorSandResetAtMs = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    const ms = value < 1e12 ? value * 1000 : value;
+    return Number.isFinite(ms) ? ms : null;
+  }
+  if (typeof value === 'string' && value.trim()) {
+    const asNumber = Number(value);
+    if (Number.isFinite(asNumber)) {
+      const ms = asNumber < 1e12 ? asNumber * 1000 : asNumber;
+      return Number.isFinite(ms) ? ms : null;
+    }
+    const parsed = Date.parse(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+export const buildCursorSandQuotaRows = (
+  payload: CursorSandUsagePayload,
+  _options?: { observedAtMs?: number }
+): CursorSandQuotaRow[] => {
+  void _options;
+  const usagePercent = normalizeNumberValue(payload.usagePercent);
+  const planLabel = normalizeStringValue(payload.grokPlanLabel) ?? undefined;
+  const resetAtMs = resolveCursorSandResetAtMs(payload.nextResetTimestampUtc);
+  const periodStartMs = resolveCursorSandResetAtMs(payload.currentPeriodStart);
+  const reset = resolveAbsoluteQuotaReset(
+    resetAtMs !== null ? new Date(resetAtMs).toISOString() : payload.nextResetTimestampUtc
+  );
+  const resolvedResetAtMs = reset.resetAtMs;
+  let limitWindowSeconds: number | null = null;
+  if (
+    periodStartMs !== null &&
+    resolvedResetAtMs !== null &&
+    resolvedResetAtMs > periodStartMs
+  ) {
+    limitWindowSeconds = Math.round((resolvedResetAtMs - periodStartMs) / 1000);
+  }
+  const hasAvailableUsage =
+    typeof payload.hasAvailableUsage === 'boolean' ? payload.hasAvailableUsage : undefined;
+  const used = usagePercent === null ? 0 : Math.max(0, Math.min(100, usagePercent));
+  const rows: CursorSandQuotaRow[] = [
+    {
+      id: 'cursor-sand-included',
+      labelKey: planLabel ? 'cursor_sand_quota.plan_usage' : 'cursor_sand_quota.included_usage',
+      labelParams: planLabel ? { plan: planLabel } : undefined,
+      used,
+      limit: 100,
+      resetAtMs: resolvedResetAtMs,
+      resetAccuracy: reset.resetAccuracy,
+      resetHint: resolvedResetAtMs !== null ? formatQuotaResetTime(resolvedResetAtMs) : undefined,
+      periodStartMs,
+      limitWindowSeconds,
+      planLabel,
+      hasAvailableUsage,
+    },
+  ];
+  return rows;
+};
+
+export const fetchCursorSandQuota = async (
+  file: AuthFileItem,
+  t: TFunction,
+  requestScope?: ApiClientRequestScope
+): Promise<CursorSandQuotaData> => {
+  const rawAuthIndex = file['auth_index'] ?? file.authIndex;
+  const authIndex = normalizeAuthIndex(rawAuthIndex);
+  if (!authIndex) {
+    throw new Error(t('cursor_sand_quota.missing_auth_index'));
+  }
+
+  const path = `/plugins/cursor-sand/sand-usage?auth_index=${encodeURIComponent(authIndex)}`;
+  let payloadRaw: unknown;
+  try {
+    payloadRaw = await apiClient.get(
+      path,
+      requestScope ? createScopedApiRequestConfig(requestScope) : undefined
+    );
+  } catch (error) {
+    const status = getStatusFromError(error);
+    const message = error instanceof Error ? error.message : t('cursor_sand_quota.empty_data');
+    throw createStatusError(message, status);
+  }
+
+  const payload = parseCursorSandUsagePayload(payloadRaw);
+  if (!payload) {
+    throw new Error(t('cursor_sand_quota.empty_data'));
+  }
+
+  const observedAtMs = Date.now();
+  const rows = buildCursorSandQuotaRows(payload, { observedAtMs });
+  const planLabel = normalizeStringValue(payload.grokPlanLabel) ?? undefined;
+  return {
+    rows,
+    planLabel,
+    quotaInventoryObserved:
+      rows.length > 0 ||
+      payload.usagePercent !== undefined ||
+      payload.hasAvailableUsage !== undefined ||
+      payload.hasNonZeroIncludedLimit !== undefined,
   };
 };
 

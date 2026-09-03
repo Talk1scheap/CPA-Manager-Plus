@@ -22,6 +22,7 @@ const emptyStores = (): AccountQuotaStores => ({
   claudeQuota: {},
   codexQuota: {},
   kimiQuota: {},
+  cursorSandQuota: {},
   xaiQuota: {},
 });
 
@@ -50,6 +51,7 @@ const buildRow = (file: AuthFileItem, stores: AccountQuotaStores = emptyStores()
     stores.claudeQuota,
     stores.codexQuota,
     stores.kimiQuota,
+    stores.cursorSandQuota,
     stores.xaiQuota,
   ] as Array<Record<string, CredentialScopedQuotaState>>;
   records.forEach((record) => {

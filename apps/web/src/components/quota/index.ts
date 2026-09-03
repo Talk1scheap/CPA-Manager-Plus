@@ -3,6 +3,7 @@ export {
   CLAUDE_CONFIG,
   CODEX_CONFIG,
   KIMI_CONFIG,
+  CURSOR_SAND_CONFIG,
   XAI_CONFIG,
   buildObservedCodexQuotaState,
   getQuotaStoreKey,

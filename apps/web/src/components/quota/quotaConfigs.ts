@@ -8,6 +8,7 @@ import type {
   CodexRateLimitResetCredit,
   CredentialScopedQuotaState,
   KimiQuotaState,
+  CursorSandQuotaState,
   XaiBillingSummary,
   XaiQuotaState,
 } from '@/types';
@@ -18,6 +19,7 @@ import type {
   ClaudeQuotaData,
   CodexQuotaData,
   KimiQuotaData,
+  CursorSandQuotaData,
 } from '@/utils/quota';
 import {
   buildCodexQuotaWindows,
@@ -25,6 +27,7 @@ import {
   fetchClaudeQuota,
   fetchCodexQuota,
   fetchKimiQuota,
+  fetchCursorSandQuota,
   fetchXaiQuota,
   filterFreshCodexQuotaWindows,
   findCodexProviderWindowMatch,
@@ -49,7 +52,7 @@ import {
   scopeQuotaStateToCredential,
 } from '@/utils/quota/credentialScope';
 
-type QuotaType = 'antigravity' | 'claude' | 'codex' | 'kimi' | 'xai';
+type QuotaType = 'antigravity' | 'claude' | 'codex' | 'kimi' | 'cursor-sand' | 'xai';
 
 export interface QuotaConfig<TState, TData> {
   type: QuotaType;
@@ -668,6 +671,36 @@ export const KIMI_CONFIG: QuotaConfig<KimiQuotaState, KimiQuotaData> = {
     status: 'success',
     rows: data.rows,
     quotaInventoryObserved: data.quotaInventoryObserved,
+    ...buildQuotaCredentialIdentity(file),
+    fetchedAtMs: Date.now(),
+  }),
+  buildErrorState: (message, status, file) => ({
+    status: 'error',
+    rows: [],
+    error: message,
+    errorStatus: status,
+    ...buildQuotaCredentialIdentity(file),
+    failedAtMs: Date.now(),
+  }),
+  scopeState: scopeCredentialQuotaState,
+};
+
+
+export const CURSOR_SAND_CONFIG: QuotaConfig<CursorSandQuotaState, CursorSandQuotaData> = {
+  type: 'cursor-sand',
+  i18nPrefix: 'cursor_sand_quota',
+  fetchQuota: fetchCursorSandQuota,
+  getStoreKey: getQuotaCredentialStoreKey,
+  buildLoadingState: (file) => ({
+    status: 'loading',
+    rows: [],
+    ...buildQuotaCredentialIdentity(file),
+  }),
+  buildSuccessState: (data, file) => ({
+    status: 'success',
+    rows: data.rows,
+    quotaInventoryObserved: data.quotaInventoryObserved,
+    planLabel: data.planLabel,
     ...buildQuotaCredentialIdentity(file),
     fetchedAtMs: Date.now(),
   }),

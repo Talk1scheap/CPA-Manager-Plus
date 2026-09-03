@@ -40,6 +40,7 @@ export type AccountQuotaWindowSource =
   | 'claude'
   | 'antigravity'
   | 'kimi'
+  | 'cursor-sand'
   | 'xai'
   | 'summary';
 
@@ -572,6 +573,42 @@ const buildKimiQuotaDisplayWindows = (
   });
 };
 
+const buildCursorSandQuotaDisplayWindows = (
+  row: AccountRow,
+  options: BuildAccountQuotaDisplayWindowsOptions
+): AccountQuotaDisplayWindow[] => {
+  const quota = getCredentialScopedQuotaState(options.stores.cursorSandQuota, row.raw);
+  if (!quota?.rows?.length) return [];
+  return quota.rows.map((quotaRow) => {
+    const remainingPercent =
+      quotaRow.limit > 0
+        ? clampDisplayPercent(((quotaRow.limit - quotaRow.used) / quotaRow.limit) * 100)
+        : null;
+    const label = options.translateQuotaWindowLabel(
+      quotaRow.label,
+      quotaRow.labelKey,
+      quotaRow.labelParams
+    );
+    return buildAccountQuotaDisplayWindow({
+      key: quotaRow.id,
+      label,
+      remainingPercent,
+      usedPercent: remainingPercent === null ? null : clampDisplayPercent(100 - remainingPercent),
+      resetLabel: quotaRow.resetHint || '-',
+      resetAtMs: quotaRow.resetAtMs,
+      resetAccuracy: quotaRow.resetAccuracy,
+      limitWindowSeconds: quotaRow.limitWindowSeconds ?? null,
+      cycleStartMs: quotaRow.periodStartMs ?? null,
+      cycleEndMs: quotaRow.resetAtMs ?? null,
+      modelScope: { kind: 'all', complete: true },
+      amountLabel: `${Math.round(quotaRow.used)}% / ${quotaRow.limit}%`,
+      source: 'cursor-sand',
+      observedAtMs: quota.fetchedAtMs ?? null,
+      nowMs: options.nowMs,
+    });
+  });
+};
+
 const buildXaiQuotaDisplayWindows = (
   row: AccountRow,
   options: BuildAccountQuotaDisplayWindowsOptions
@@ -739,6 +776,11 @@ export const buildAccountQuotaDisplayWindows = (
 
   if (row.provider === 'kimi') {
     const windows = buildKimiQuotaDisplayWindows(row, options);
+    if (windows.length) return windows;
+  }
+
+  if (row.provider === 'cursor-sand') {
+    const windows = buildCursorSandQuotaDisplayWindows(row, options);
     if (windows.length) return windows;
   }
 

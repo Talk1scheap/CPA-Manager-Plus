@@ -4,6 +4,7 @@ import type {
   ClaudeQuotaState,
   CodexQuotaState,
   KimiQuotaState,
+  CursorSandQuotaState,
   QuotaResetAccuracy,
   XaiBillingSummary,
   XaiQuotaState,
@@ -75,6 +76,7 @@ export interface AccountQuotaStores {
   claudeQuota: Record<string, ClaudeQuotaState>;
   codexQuota: Record<string, CodexQuotaState>;
   kimiQuota: Record<string, KimiQuotaState>;
+  cursorSandQuota: Record<string, CursorSandQuotaState>;
   xaiQuota: Record<string, XaiQuotaState>;
 }
 
@@ -1008,6 +1010,25 @@ export const resolveAccountQuota = (
         resetAccuracy: row.resetAccuracy,
       })),
       filePlanType,
+      { fetchedAtMs: quota.fetchedAtMs }
+    );
+  }
+
+  if (provider === 'cursor-sand') {
+    const quota = getCredentialScopedQuotaState(stores.cursorSandQuota, file);
+    if (!quota) return emptyQuota(filePlanType);
+    if (quota.status === 'loading') return loadingQuota(filePlanType);
+    if (quota.status === 'error')
+      return quotaFromError(quota.error, filePlanType, quota.errorStatus, quota.failedAtMs);
+    return quotaFromRemainingWindows(
+      quota.rows.map((row) => ({
+        remainingPercent:
+          row.limit > 0 ? (Math.max(0, row.limit - row.used) / row.limit) * 100 : null,
+        resetLabel: row.resetHint,
+        resetAtMs: row.resetAtMs,
+        resetAccuracy: row.resetAccuracy,
+      })),
+      filePlanType || quota.planLabel || null,
       { fetchedAtMs: quota.fetchedAtMs }
     );
   }

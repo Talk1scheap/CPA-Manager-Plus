@@ -34,6 +34,7 @@ import type {
   CodexQuotaState,
   CredentialScopedQuotaState,
   KimiQuotaState,
+  CursorSandQuotaState,
   XaiQuotaState,
 } from '@/types';
 import type { ModelInfo } from '@/utils/models';
@@ -59,6 +60,7 @@ export type DemoQuotaStoreState = {
   claudeQuota: Record<string, ClaudeQuotaState>;
   codexQuota: Record<string, CodexQuotaState>;
   kimiQuota: Record<string, KimiQuotaState>;
+  cursorSandQuota: Record<string, CursorSandQuotaState>;
   xaiQuota: Record<string, XaiQuotaState>;
 };
 
@@ -6155,6 +6157,7 @@ const getDemoQuotaStoreStateByFileName = (): DemoQuotaStoreState => ({
       ],
     },
   },
+  cursorSandQuota: {},
   kimiQuota: {
     'kimi-coding.json': {
       status: 'success',
@@ -6320,6 +6323,7 @@ export const getDemoQuotaStoreState = (): DemoQuotaStoreState => {
     claudeQuota: scopeDemoQuotaRecord(raw.claudeQuota, filesByName),
     codexQuota: scopeDemoQuotaRecord(raw.codexQuota, filesByName),
     kimiQuota: scopeDemoQuotaRecord(raw.kimiQuota, filesByName),
+    cursorSandQuota: scopeDemoQuotaRecord(raw.cursorSandQuota ?? {}, filesByName),
     xaiQuota: scopeDemoQuotaRecord(raw.xaiQuota, filesByName),
   };
 };

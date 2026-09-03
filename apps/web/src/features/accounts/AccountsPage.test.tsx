@@ -485,11 +485,13 @@ const { mocks } = vi.hoisted(() => {
         claudeQuota: {},
         codexQuota: {},
         kimiQuota: {},
+        cursorSandQuota: {},
         xaiQuota: {},
         setAntigravityQuota: vi.fn(),
         setClaudeQuota: vi.fn(),
         setCodexQuota: vi.fn(),
         setKimiQuota: vi.fn(),
+        setCursorSandQuota: vi.fn(),
         setXaiQuota: vi.fn(),
       },
       t: (key: string, options?: Record<string, unknown>) => {
@@ -852,11 +854,13 @@ vi.mock('@/stores', () => ({
       claudeQuota: Record<string, never>;
       codexQuota: Record<string, never>;
       kimiQuota: Record<string, never>;
+      cursorSandQuota: Record<string, never>;
       xaiQuota: Record<string, never>;
       setAntigravityQuota: () => void;
       setClaudeQuota: () => void;
       setCodexQuota: () => void;
       setKimiQuota: () => void;
+      setCursorSandQuota: () => void;
       setXaiQuota: () => void;
     }) => unknown
   ) => selector(mocks.quotaState),
@@ -1263,11 +1267,13 @@ describe('AccountsPage replacement flows', () => {
     mocks.quotaState.claudeQuota = {};
     mocks.quotaState.codexQuota = {};
     mocks.quotaState.kimiQuota = {};
+    mocks.quotaState.cursorSandQuota = {};
     mocks.quotaState.xaiQuota = {};
     mocks.quotaState.setAntigravityQuota.mockReset();
     mocks.quotaState.setClaudeQuota.mockReset();
     mocks.quotaState.setCodexQuota.mockReset();
     mocks.quotaState.setKimiQuota.mockReset();
+    mocks.quotaState.setCursorSandQuota.mockReset();
     mocks.quotaState.setXaiQuota.mockReset();
     mocks.loadFiles.mockReset();
     mocks.loadFiles.mockImplementation(async () => mocks.files);

@@ -19,6 +19,7 @@ const emptyStores = (): AccountQuotaStores => ({
   claudeQuota: {},
   codexQuota: {},
   kimiQuota: {},
+  cursorSandQuota: {},
   xaiQuota: {},
 });
 
